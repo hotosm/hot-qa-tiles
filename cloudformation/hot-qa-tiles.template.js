@@ -40,7 +40,7 @@ const resources = {
         }
      }
   },
-  HOTQATilesScheduledAction: {
+  HOTQATilesASGScheduledAction: {
     Type: 'AWS::AutoScaling::ScheduledAction',
     Properties: {
       AutoScalingGroupName: cf.ref('HotQATilesASG'),
