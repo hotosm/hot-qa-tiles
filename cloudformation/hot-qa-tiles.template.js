@@ -11,7 +11,7 @@ const resources = {
       MaxSize: 1,
       HealthCheckGracePeriod: 300,
       HealthCheckType: 'EC2',
-      AvailabilityZone: cf.getAzs(cf.region),
+      AvailabilityZones: cf.getAzs(cf.region),
       MixedInstancesPolicy: {
         LaunchTemplate: {
           LaunchTemplateSpecification: {
