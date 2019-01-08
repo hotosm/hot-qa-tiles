@@ -121,7 +121,8 @@ const resources = {
                   'arn:aws:s3:::hot-qa-tiles/*'
               ]
           }
-      ],
+        }
+      }],
       RoleName: cf.join('-', [cf.stackName, 'ec2', 'role'])
     }
   },
@@ -134,3 +135,5 @@ const resources = {
   },
 
 };
+
+module.exports = cf.merge(parameters, resources);
