@@ -8,37 +8,37 @@ const parameters = {
 };
 const resources = {
   HotQATilesASG: {
-     Type: 'AWS::AutoScaling::AutoScalingGroup',
-     Properties: {
-        AutoScalingGroupName: cf.stackName,
-        Cooldown: 300,
-        MinSize: 0,
-        DesiredCapacity: 1,
-        MaxSize: 1,
-        HealthCheckGracePeriod: 300,
-        HealthCheckType: 'EC2',
-        AvailabilityZone: cf.getAzs(cf.region),
-        MixedInstancesPolicy: {
-          LaunchTemplate: {
-            LaunchTemplateSpecification: {
-              LaunchTemplateName: cf.ref('HOTQATilesEC2LaunchTemplate'),
-              Version: 1
-            },
-            Overrides: [{
-              InstanceType: 'r3.8xlarge'
-            }, {
-              InstanceType: 'r5d.4xlarge'
-            }]
+    Type: 'AWS::AutoScaling::AutoScalingGroup',
+    Properties: {
+      AutoScalingGroupName: cf.stackName,
+      Cooldown: 300,
+      MinSize: 0,
+      DesiredCapacity: 1,
+      MaxSize: 1,
+      HealthCheckGracePeriod: 300,
+      HealthCheckType: 'EC2',
+      AvailabilityZone: cf.getAzs(cf.region),
+      MixedInstancesPolicy: {
+        LaunchTemplate: {
+          LaunchTemplateSpecification: {
+            LaunchTemplateName: cf.ref('HOTQATilesEC2LaunchTemplate'),
+            Version: 1
           },
-          InstancesDistribution: {
-            OnDemandAllocationStrategy: 'prioritized',
-            OnDemandBaseCapacity: 0,
-            OnDemandPercentageAboveBaseCapacity: 50,
-            SpotAllocationStrategy: 'lowest-price',
-            SpotInstancePools: 2
-          }
+          Overrides: [{
+            InstanceType: 'r3.8xlarge'
+          }, {
+            InstanceType: 'r5d.4xlarge'
+          }]
+        },
+        InstancesDistribution: {
+          OnDemandAllocationStrategy: 'prioritized',
+          OnDemandBaseCapacity: 0,
+          OnDemandPercentageAboveBaseCapacity: 50,
+          SpotAllocationStrategy: 'lowest-price',
+          SpotInstancePools: 2
         }
-     }
+      }
+    }
   },
   HOTQATilesASGScheduledAction: {
     Type: 'AWS::AutoScaling::ScheduledAction',
@@ -56,6 +56,7 @@ const resources = {
       LaunchTemplateName: cf.join('-', [cf.stackName, 'ec2', 'launch', 'template']),
       LaunchTemplateData: {
         UserData: cf.userData([
+          '#!/bin/bash',
           'sudo mkswap /dev/xvdc',
           'sudo swapon /dev/xvdc',
           'sudo mkfs -t ext3 /dev/xvdb',
@@ -89,15 +90,15 @@ const resources = {
     Properties: {
       AssumeRolePolicyDocument: {
         Version: "2012-10-17",
-        Statement: [ {
+        Statement: [{
           Effect: "Allow",
           Principal: {
              Service: [ "ec2.amazonaws.com" ]
           },
           Action: [ "sts:AssumeRole" ]
-        } ]
+        }]
       },
-      Policies: [ {
+      Policies: [{
         PolicyName: "S3Policy",
         PolicyDocument: {
           Version: "2012-10-17",
@@ -120,7 +121,7 @@ const resources = {
               Resource: [
                   'arn:aws:s3:::hot-qa-tiles/*'
               ]
-          }
+          }]
         }
       }],
       RoleName: cf.join('-', [cf.stackName, 'ec2', 'role'])
@@ -136,4 +137,4 @@ const resources = {
 
 };
 
-module.exports = cf.merge(parameters, resources);
+module.exports = cf.merge({ Parameters: parameters, Resources: resources });
