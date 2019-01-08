@@ -79,7 +79,10 @@ const resources = {
           'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
-        IamInstanceProfile: cf.ref('HOTQATilesEC2InstanceProfile'),
+        IamInstanceProfile: {
+          Name: cf.ref('HOTQATilesEC2InstanceProfile'),
+          Arn: cf.getAtt('HOTQATilesEC2InstanceProfile', 'Arn')
+        },
         KeyName: 'mbtiles',
         ImageId: 'ami-dd4496a5'
       }
