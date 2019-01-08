@@ -53,6 +53,7 @@ const resources = {
           '#!/bin/bash',
           'sudo mkswap /dev/xvdc',
           'sudo swapon /dev/xvdc',
+          'sudo mkdir -p hot-qa-tiles',
           'sudo mkfs -t ext3 /dev/xvdb',
           'sudo mount /dev/xvdb hot-qa-tiles/',
           'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap',
@@ -67,7 +68,6 @@ const resources = {
           '~/.mason/mason link tippecanoe 1.31.0',
           'echo $PATH',
           'export PATH=$PATH:~/mason_packages/.link/bin/',
-          'sudo mkdir -p hot-qa-tiles',
           'sudo chmod 777 hot-qa-tiles/',
           'cd hot-qa-tiles/',
           'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
