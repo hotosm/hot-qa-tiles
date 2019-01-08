@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/hotosm/hot-qa-tiles/issues"
   },
-  "homepage": "https://github.com/hotosm/hot-qa-tiles#readme"
+  "homepage": "https://github.com/hotosm/hot-qa-tiles#readme",
+  "dependencies": {
+    "@mapbox/cloudfriend": "^2.6.0"
+  }
 }
