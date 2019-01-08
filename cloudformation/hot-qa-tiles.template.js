@@ -130,7 +130,7 @@ const resources = {
   HOTQATilesEC2InstanceProfile: {
      Type: "AWS::IAM::InstanceProfile",
      Properties: {
-        Roles: cf.ref('HOTQATilesEC2Role'),
+        Roles: [cf.ref('HOTQATilesEC2Role')],
         InstanceProfileName: cf.join('-', [cf.stackName, 'ec2', 'instance', 'profile'])
      }
   },
