@@ -74,8 +74,7 @@ const resources = {
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
-          Name: cf.ref('HOTQATilesEC2InstanceProfile'),
-          Arn: cf.getAtt('HOTQATilesEC2InstanceProfile', 'Arn')
+          Name: cf.ref('HOTQATilesEC2InstanceProfile')
         },
         KeyName: 'mbtiles',
         ImageId: 'ami-f6ed648c'
