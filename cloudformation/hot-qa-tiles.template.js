@@ -78,7 +78,7 @@ const resources = {
           Arn: cf.getAtt('HOTQATilesEC2InstanceProfile', 'Arn')
         },
         KeyName: 'mbtiles',
-        ImageId: 'ami-dd4496a5'
+        ImageId: 'ami-f6ed648c'
       }
     }
   },
