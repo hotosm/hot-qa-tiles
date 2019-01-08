@@ -15,7 +15,7 @@ const resources = {
       MixedInstancesPolicy: {
         LaunchTemplate: {
           LaunchTemplateSpecification: {
-            LaunchTemplateName: cf.ref('HOTQATilesEC2LaunchTemplate'),
+            LaunchTemplateId: cf.ref('HOTQATilesEC2LaunchTemplate'),
             Version: 1
           },
           Overrides: [{
