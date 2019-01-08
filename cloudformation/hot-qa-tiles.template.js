@@ -41,7 +41,7 @@ const resources = {
       DesiredCapacity: 1,
       MaxSize: 1,
       MinSize: 0,
-      Recurrence: '30 14 ? * TUE *'
+      Recurrence: '0 19 * * *'
     }
   },
   HOTQATilesEC2LaunchTemplate: {
