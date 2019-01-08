@@ -1,11 +1,5 @@
 const cf = require('@mapbox/cloudfriend');
 
-const parameters = {
-    GitSha: {
-        Description: 'hot-qa-tiles GitSha',
-        Type: 'String'
-    }
-};
 const resources = {
   HotQATilesASG: {
     Type: 'AWS::AutoScaling::AutoScalingGroup',
@@ -140,4 +134,4 @@ const resources = {
 
 };
 
-module.exports = cf.merge({ Parameters: parameters, Resources: resources });
+module.exports = cf.merge({Resources: resources });
