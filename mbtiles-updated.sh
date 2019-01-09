@@ -121,7 +121,8 @@ function run() {
     T="$(($(date +%s)-$WORKER_START))"
     echo "worker finished in $T seconds"
 
-    echo "Success. Updating ASG"
+    echo "Success. Updating ASG to terminate the machine"
+    aws update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0
 
     echo "Success. Shutting down..."
 }
