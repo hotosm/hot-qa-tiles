@@ -70,7 +70,8 @@ const resources = {
           '~/.mason/mason install tippecanoe 1.31.0',
           '~/.mason/mason link tippecanoe 1.31.0',
           'echo $PATH',
-          'sudo export PATH=$PATH:/mason_packages/.link/bin/',
+          'export PATH=$PATH:/mason_packages/.link/bin/',
+          cf.sub('export HotQATilesASG=${HotQATilesASG}')
           'sudo chmod 777 hot-qa-tiles/',
           'cd hot-qa-tiles/',
           'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
