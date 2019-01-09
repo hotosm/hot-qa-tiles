@@ -102,13 +102,11 @@ const resources = {
         PolicyName: "S3Policy",
         PolicyDocument: {
           Version: "2012-10-17",
-          Statement:[
-          {
+          Statement:[{
               Action: [ 's3:ListBucket'],
               Effect: 'Allow',
               Resource: ['arn:aws:s3:::hot-qa-tiles']
-          },
-          {
+          }, {
               Action: [
                   's3:GetObject',
                   's3:GetObjectAcl',
@@ -121,6 +119,14 @@ const resources = {
               Resource: [
                   'arn:aws:s3:::hot-qa-tiles/*'
               ]
+          }, {
+            Action: [
+                'autoscaling:UpdateAutoScalingGroup'
+            ],
+            Effect: 'Allow',
+            Resource: [
+                cf.getAtt(cf.ref('HotQATilesASG'), 'Arn')
+            ]
           }]
         }
       }],
