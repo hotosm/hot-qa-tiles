@@ -121,9 +121,8 @@ function run() {
     T="$(($(date +%s)-$WORKER_START))"
     echo "worker finished in $T seconds"
 
-    # shutdown machine after updating CloudWatch metrics
-    echo "Success. Update CloudWatch metric"
-    node ./scripts/updateCloudwatch.js
+    echo "Success. Updating ASG"
+
     echo "Success. Shutting down..."
 }
 
