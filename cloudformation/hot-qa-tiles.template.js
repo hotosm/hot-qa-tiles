@@ -51,12 +51,15 @@ const resources = {
       LaunchTemplateData: {
         UserData: cf.userData([
           '#!/bin/bash',
-          'sudo mkswap /dev/xvdc',
-          'sudo swapon /dev/xvdc',
+          'while [ ! -e /dev/xvdc ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
+          'while [ ! -e /dev/xvdb ]; do echo waiting for /dev/xvdb to attach; sleep 10; done',
           'sudo mkdir -p hot-qa-tiles',
+          'sudo mkfs -t ext3 /dev/xvdc',
+          'sudo mount /dev/xvdc hot-qa-tiles/',
           'sudo mkfs -t ext3 /dev/xvdb',
-          'sudo mount /dev/xvdb hot-qa-tiles/',
-          'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap',
+          'sudo mount /dev/xvdb /tmp',
+          'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
+          'sudo yum --enablerepo epel install -y moreutils',
           'git clone https://github.com/mapbox/mason.git ~/.mason',
           'sudo ln -s ~/.mason/mason /usr/local/bin/mason',
           '~/.mason/mason install libosmium 2.13.1',
@@ -67,7 +70,7 @@ const resources = {
           '~/.mason/mason install tippecanoe 1.31.0',
           '~/.mason/mason link tippecanoe 1.31.0',
           'echo $PATH',
-          'export PATH=$PATH:~/mason_packages/.link/bin/',
+          'sudo export PATH=$PATH:/mason_packages/.link/bin/',
           'sudo chmod 777 hot-qa-tiles/',
           'cd hot-qa-tiles/',
           'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
