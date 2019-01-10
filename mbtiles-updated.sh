@@ -6,7 +6,7 @@ LATEST=planet-latest
 
 function setup() {
 
-    if [$MULTI_POLYGON]; then
+    if [ $MULTI_POLYGON ]; then
         EXT=".mp"
     fi
 
@@ -85,7 +85,7 @@ function run() {
 
     # cycle old country tiles
     cycleCountryTiles
-    
+
     # upload latest country tiles
     aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
 
