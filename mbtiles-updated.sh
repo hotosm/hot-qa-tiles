@@ -55,25 +55,25 @@ function run() {
     # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
 
     echo $SOURCE_PATH/planet/$LATEST.osm.pbf
-    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+   # aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
     MBTILES_START_TIME="$(date +%s)"
 
-    cycleGeojson
+    # cycleGeojson
     if [ $MULTI_POLYGON ]; then
       echo "building geojson with multipolygons"
-       minjur-mp \
-            -n ${INDEX_TYPE} \
-            $DATA_DIR/$LATEST.osm.pbf | tee >(tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20) >(pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz)
+      #  minjur-mp \
+        #    -n ${INDEX_TYPE} \
+         #   $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
     else
       echo "building geojson"
-        minjur \
-            -n ${INDEX_TYPE} \
-            -z 12 \
-            -p \
-            $DATA_DIR/$LATEST.osm.pbf | tee >(tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20) >(pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz)
+        #minjur \
+         #   -n ${INDEX_TYPE} \
+          #  -z 12 \
+           # -p \
+           # $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
     fi
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
@@ -81,25 +81,29 @@ function run() {
 
 
     # # create country extracts
-    # echo "Creating country extracts..."
-    # aws s3 cp --quiet $SOURCE_PATH/countries.json $DATA_DIR/
-    # node ./scripts/countries.js
+    echo "Creating country extracts..."
+    echo "$DATA_DIR/countries.json"
+    aws s3 cp $SOURCE_PATH/countries.json $DATA_DIR/
+    #  node ./scripts/countries.js
     # rm $DATA_DIR/countries.json
     #
-    # for country in $(ls ${DATA_DIR}/*.geojson); do
-    #     mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$country" ADMIN
+    #for country in $(ls ${DATA_DIR}/*.geojson); do
+    EXT=".mp"
+    echo "$DATA_DIR/$LATEST$EXT.planet.mbtiles"
+    echo "$DATA_DIR/countries.json"
+    mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$DATA_DIR/countries.json"  NAME_EN
     # done
     #
     # # compress country extracts
-    # pigz $DATA_DIR/$LATEST$EXT.planet/*
+    pigz $DATA_DIR/$LATEST$EXT.planet/*
     #
-    # #cycle old country tiles
-    # cycleCountryTiles
+     #cycle old country tiles
+    cycleCountryTiles
     #
-    # #upload latest country tiles
-    # aws s3 cp --quiet --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
+     #upload latest country tiles
+     aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
 
-    rm -rf $DATA_DIR/$LATEST$EXT.planet
+    #rm -rf $DATA_DIR/$LATEST$EXT.planet
 
     #compress planet tiles
     COMPRESS_START="$(date +%s)"
@@ -108,16 +112,15 @@ function run() {
     echo "compressed in $T seconds"
 
     # # cycle old planet tiles
-    # cycleTiles
+    cycleTiles
 
     # upload new planet tiles to s3
-    aws s3 cp --quiet --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+    aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
 
     rm $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz
 
     # put the state to s3
-    # aws s3 cp --quiet --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
-
+    aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
     T="$(($(date +%s)-$WORKER_START))"
     echo "worker finished in $T seconds"
 
