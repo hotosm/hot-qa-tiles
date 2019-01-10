@@ -79,7 +79,6 @@ const resources = {
           'sudo ln -s ~/.mason/mason /usr/local/bin/mason',
           '~/.mason/mason install libosmium 2.13.1',
           '~/.mason/mason link libosmium 2.13.1',
-          '~/.mason/mason install minjur ~/.mason/mason install minjur',
           '~/.mason/mason install minjur a2c9dc871369432c7978718834dac487c0591bd6',
           '~/.mason/mason link minjur a2c9dc871369432c7978718834dac487c0591bd6',
           '~/.mason/mason install tippecanoe 1.31.0',
@@ -89,7 +88,7 @@ const resources = {
           cf.sub('export HotQATilesASG=${AWS::StackName}'),
           'sudo chmod 777 hot-qa-tiles-generator/',
           'cd hot-qa-tiles-generator/',
-          cf.sub('git clone https://${OAuthToken}a@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}')
+          cf.sub('git clone https://${OAuthToken}a@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
           'screen -dmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh; ./mbtiles-updated.sh"'
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
