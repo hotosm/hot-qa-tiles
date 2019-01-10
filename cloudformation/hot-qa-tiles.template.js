@@ -1,5 +1,14 @@
 const cf = require('@mapbox/cloudfriend');
-
+const parameters = {
+  GitSha: {
+    Type: 'String',
+    Description: 'GitSha for this stack'
+  },
+  OAuthToken: {
+    Type: 'String',
+    Description: 'OAuthToken with permissions to clone hot-qa-tiles'
+  }
+};
 const resources = {
   HotQATilesASG: {
     Type: 'AWS::AutoScaling::AutoScalingGroup',
@@ -53,9 +62,9 @@ const resources = {
           '#!/bin/bash',
           'while [ ! -e /dev/xvdc ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
           'while [ ! -e /dev/xvdb ]; do echo waiting for /dev/xvdb to attach; sleep 10; done',
-          'sudo mkdir -p hot-qa-tiles',
+          'sudo mkdir -p hot-qa-tiles-generator',
           'sudo mkfs -t ext3 /dev/xvdc',
-          'sudo mount /dev/xvdc hot-qa-tiles/',
+          'sudo mount /dev/xvdc hot-qa-tiles-generator/',
           'sudo mkfs -t ext3 /dev/xvdb',
           'sudo mount /dev/xvdb /tmp',
           'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
@@ -76,11 +85,11 @@ const resources = {
           '~/.mason/mason link tippecanoe 1.31.0',
           'echo $PATH',
           'export PATH=$PATH:/mason_packages/.link/bin/',
-          // cf.sub('export HotQATilesASG=${HotQATilesASG}'),
-          'sudo chmod 777 hot-qa-tiles/',
-          'cd hot-qa-tiles/',
-          'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
-          
+          cf.sub('export HotQATilesASG=${AWS::StackName}'),
+          'sudo chmod 777 hot-qa-tiles-generator/',
+          'cd hot-qa-tiles-generator/',
+          cf.sub('git clone https://${OAuthToken}a@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}')
+          'screen -dmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh; ./mbtiles-updated.sh"'
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
@@ -152,4 +161,4 @@ const resources = {
 
 };
 
-module.exports = cf.merge({Resources: resources });
+module.exports = cf.merge({ Parameters: parameters, Resources: resources });
