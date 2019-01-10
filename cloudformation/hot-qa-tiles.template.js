@@ -76,7 +76,7 @@ const resources = {
           '~/.mason/mason link tippecanoe 1.31.0',
           'echo $PATH',
           'export PATH=$PATH:/mason_packages/.link/bin/',
-          cf.sub('export HotQATilesASG=${HotQATilesASG}')
+          // cf.sub('export HotQATilesASG=${HotQATilesASG}'),
           'sudo chmod 777 hot-qa-tiles/',
           'cd hot-qa-tiles/',
           'screen -dmS "tippecanoe" bash -c "aws s3 cp s3://hot-qa-tiles/mbtiles-updated.sh .; sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
@@ -109,30 +109,33 @@ const resources = {
         PolicyDocument: {
           Version: "2012-10-17",
           Statement:[{
-              Action: [ 's3:ListBucket'],
-              Effect: 'Allow',
-              Resource: ['arn:aws:s3:::hot-qa-tiles']
+            Action: [ 's3:ListBucket'],
+            Effect: 'Allow',
+            Resource: ['arn:aws:s3:::hot-qa-tiles']
           }, {
-              Action: [
-                  's3:GetObject',
-                  's3:GetObjectAcl',
-                  's3:PutObject',
-                  's3:PutObjectAcl',
-                  's3:ListObjects',
-                  's3:DeleteObject'
-              ],
-              Effect: 'Allow',
-              Resource: [
-                  'arn:aws:s3:::hot-qa-tiles/*'
-              ]
+            Action: [
+                's3:GetObject',
+                's3:GetObjectAcl',
+                's3:PutObject',
+                's3:PutObjectAcl',
+                's3:ListObjects',
+                's3:DeleteObject'
+            ],
+            Effect: 'Allow',
+            Resource: [
+                'arn:aws:s3:::hot-qa-tiles/*'
+            ]
           }, {
             Action: [
                 'autoscaling:UpdateAutoScalingGroup'
             ],
             Effect: 'Allow',
-            Resource: [
-                cf.getAtt(cf.ref('HotQATilesASG'), 'Arn')
-            ]
+            Resource: [ '*' ],
+            Condition: {
+              ArnLike: {
+                'iam:PolicyARN': cf.join('',['arn:aws:autoscaling:',cf.region,'::autoScalingGroup::autoScalingGroupName/',cf.stackName])
+              }
+            }
           }]
         }
       }],
