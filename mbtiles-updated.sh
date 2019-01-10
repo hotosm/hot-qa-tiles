@@ -88,7 +88,7 @@ function run() {
     # rm $DATA_DIR/countries.json
     #
     #for country in $(ls ${DATA_DIR}/*.geojson); do
-    EXT=".mp"
+    # EXT=".mp"
     echo "$DATA_DIR/$LATEST$EXT.planet.mbtiles"
     echo "$DATA_DIR/countries.json"
     mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$DATA_DIR/countries.json"  NAME_EN
@@ -112,7 +112,7 @@ function run() {
     echo "compressed in $T seconds"
 
     # # cycle old planet tiles
-    cycleTiles
+    # cycleTiles
 
     # upload new planet tiles to s3
     aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
