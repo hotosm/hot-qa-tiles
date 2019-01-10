@@ -51,7 +51,7 @@ function run() {
     # get latest planet
     echo "Retrieve the latest planet PBF..."
     # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-    # aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
@@ -62,14 +62,14 @@ function run() {
       echo "building geojson with multipolygons"
        minjur-mp \
            -n ${INDEX_TYPE} \
-           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
     else
       echo "building geojson"
         minjur \
            -n ${INDEX_TYPE} \
            -z 12 \
            -p \
-           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
     fi
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"

@@ -89,7 +89,7 @@ const resources = {
           'sudo chmod 777 hot-qa-tiles-generator/',
           'cd hot-qa-tiles-generator/',
           cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
-          'screen -dmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh; ./mbtiles-updated.sh"'
+          'screen -dmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;./mbtiles-updated.sh"'
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
