@@ -64,16 +64,16 @@ function run() {
     # cycleGeojson
     if [ $MULTI_POLYGON ]; then
       echo "building geojson with multipolygons"
-      #  minjur-mp \
-        #    -n ${INDEX_TYPE} \
-         #   $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+       minjur-mp \
+           -n ${INDEX_TYPE} \
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
     else
       echo "building geojson"
-        #minjur \
-         #   -n ${INDEX_TYPE} \
-          #  -z 12 \
-           # -p \
-           # $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+        minjur \
+           -n ${INDEX_TYPE} \
+           -z 12 \
+           -p \
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
     fi
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
