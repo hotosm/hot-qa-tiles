@@ -138,12 +138,7 @@ const resources = {
                 'autoscaling:UpdateAutoScalingGroup'
             ],
             Effect: 'Allow',
-            Resource: [ '*' ],
-            Condition: {
-              ArnLike: {
-                'iam:PolicyARN': cf.join('',['arn:aws:autoscaling:',cf.region,':', cf.accountId, ':autoScalingGroup:*:autoScalingGroupName/', cf.stackName])
-              }
-            }
+            Resource: [ cf.join('',['arn:aws:autoscaling:',cf.region,':', cf.accountId, ':autoScalingGroup:*:autoScalingGroupName/', cf.stackName]) ]
           }]
         }
       }],
