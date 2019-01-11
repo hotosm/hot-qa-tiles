@@ -1,6 +1,6 @@
 #!/bin/bash
 DATA_DIR=data
-DESTINATION_PATH=s://hot-qa-tiles
+DESTINATION_PATH=s3://hot-qa-tiles
 SOURCE_PATH=s3://hot-qa-tiles
 LATEST=planet-latest
 
@@ -107,7 +107,7 @@ function run() {
     echo "worker finished in $T seconds"
 
     echo "Success. Updating ASG to terminate the machine"
-    aws update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0
+    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0
 
     echo "Success. Shutting down..."
 }
