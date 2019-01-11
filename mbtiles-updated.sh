@@ -106,6 +106,7 @@ function run() {
     T="$(($(date +%s)-$WORKER_START))"
     echo "worker finished in $T seconds"
 
+    aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
     aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0 --region $Region
 
