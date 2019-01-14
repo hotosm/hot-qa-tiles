@@ -1,10 +1,5 @@
 const cf = require('@mapbox/cloudfriend');
-var fs = require('fs');
-var bashDependencies; 
- 
-fs.readFileSync(__dirname +'/dependencies.sh', 'utf8', function(err, contents) {
-    bashDependencies = contents;
-});
+
 const parameters = {
   GitSha: {
     Type: 'String',
@@ -14,11 +9,7 @@ const parameters = {
     Type: 'String',
     Description: 'OAuthToken with permissions to clone hot-qa-tiles'
   }
-
 };
-const dependencies = [
-  bashDependencies
-]
 
 const resources = {
   HotQATilesASG: {
