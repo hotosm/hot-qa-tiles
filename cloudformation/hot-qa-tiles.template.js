@@ -1,4 +1,10 @@
 const cf = require('@mapbox/cloudfriend');
+var fs = require('fs');
+var bashDependencies; 
+ 
+fs.readFileSync(__dirname +'/dependencies.sh', 'utf8', function(err, contents) {
+    bashDependencies = contents;
+});
 const parameters = {
   GitSha: {
     Type: 'String',
@@ -8,7 +14,12 @@ const parameters = {
     Type: 'String',
     Description: 'OAuthToken with permissions to clone hot-qa-tiles'
   }
+
 };
+const dependencies = [
+  bashDependencies
+]
+
 const resources = {
   HotQATilesASG: {
     Type: 'AWS::AutoScaling::AutoScalingGroup',
@@ -58,38 +69,12 @@ const resources = {
     Properties: {
       LaunchTemplateName: cf.join('-', [cf.stackName, 'ec2', 'launch', 'template']),
       LaunchTemplateData: {
-        UserData: cf.userData([
-          '#!/bin/bash',
-          'while [ ! -e /dev/xvdc ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
-          'while [ ! -e /dev/xvdb ]; do echo waiting for /dev/xvdb to attach; sleep 10; done',
-          'sudo mkdir -p hot-qa-tiles-generator',
-          'sudo mkfs -t ext3 /dev/xvdc',
-          'sudo mount /dev/xvdc hot-qa-tiles-generator/',
-          'sudo mkfs -t ext3 /dev/xvdb',
-          'sudo mount /dev/xvdb /tmp',
-          'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
-          'sudo yum --enablerepo epel install -y moreutils',
-          'curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash',
-          'export NVM_DIR="$HOME/.nvm"',
-          '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
-          '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"',
-          'nvm install v9',
-          'npm install mbtiles-extracts -g --unsafe',
-          'git clone https://github.com/mapbox/mason.git ~/.mason',
-          'sudo ln -s ~/.mason/mason /usr/local/bin/mason',
-          '~/.mason/mason install libosmium 2.13.1',
-          '~/.mason/mason link libosmium 2.13.1',
-          '~/.mason/mason install minjur a2c9dc871369432c7978718834dac487c0591bd6',
-          '~/.mason/mason link minjur a2c9dc871369432c7978718834dac487c0591bd6',
-          '~/.mason/mason install tippecanoe 1.31.0',
-          '~/.mason/mason link tippecanoe 1.31.0',
-          'echo $PATH',
-          'export PATH=$PATH:/mason_packages/.link/bin/',
-          'sudo chmod 777 hot-qa-tiles-generator/',
-          'cd hot-qa-tiles-generator/',
-          cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
-          cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh"'),
-        ]),
+        UserData: cf.userData(["#!/bin/bash",
+            cf.sub('export STACK_NAME=${AWS::StackName}'),
+            cf.sub('export REGION=${AWS::Region}'),
+            cf.sub('export GITSHA=${GitSha}'),
+            cf.sub('export OAUTH=${OAuthToken}'),
+            './dependencies.sh']),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
