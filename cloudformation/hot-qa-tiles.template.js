@@ -73,6 +73,7 @@ const resources = {
             'sudo chmod 777 hot-qa-tiles-generator/',
             'mv hot-qa-tiles hot-qa-tiles-generator/',
             'cd hot-qa-tiles-generator/',
+            'git clone https://${OAUTH}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GITSHA}',
             'ls -l',
             'chmod 775 ./hot-qa-tiles/cloudformation/dependencies.sh',
             'chmod 775 ./hot-qa-tiles/cloudformation/run-process.sh',
