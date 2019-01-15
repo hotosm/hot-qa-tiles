@@ -17,4 +17,3 @@
 '~/.mason/mason link tippecanoe 1.31.0'
 'echo $PATH'
 'export PATH=$PATH:/mason_packages/.link/bin/'
-'screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${STACK_NAME} region=${REGION} ./mbtiles-updated.sh"'
