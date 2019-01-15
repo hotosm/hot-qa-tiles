@@ -65,7 +65,7 @@ const resources = {
             cf.sub('export REGION=${AWS::Region}'),
             cf.sub('export GITSHA=${GitSha}'),
             cf.sub('export OAUTH=${OAuthToken}'),
-            'sudo yum install git',
+            'sudo yum install -y git',
             'git clone https://${OAUTH}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GITSHA}',
             './mount-drive.sh',
             'sudo chmod 777 hot-qa-tiles-generator/',
