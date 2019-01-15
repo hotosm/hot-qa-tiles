@@ -16,4 +16,4 @@ sudo ln -s ~/.mason/mason /usr/local/bin/mason
 ~/.mason/mason install tippecanoe 1.31.0
 ~/.mason/mason link tippecanoe 1.31.0
 echo $PATH
-export PATH=$PATH:/mason_packages/.link/bin/
+export PATH=$PATH:/hot-qa-tiles-generator/mason_packages/.link/bin/
