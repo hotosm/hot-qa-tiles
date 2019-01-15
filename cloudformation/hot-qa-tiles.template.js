@@ -75,10 +75,10 @@ const resources = {
             'cd hot-qa-tiles-generator/',
             'git clone https://${OAUTH}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GITSHA}',
             'ls -l',
-            'chmod 775 ./hot-qa-tiles/cloudformation/dependencies.sh',
-            'chmod 775 ./hot-qa-tiles/cloudformation/run-process.sh',
-            './hot-qa-tiles/cloudformation/dependencies.sh',
-            './hot-qa-tiles/cloudformation/run-process.sh']),
+            'chmod 775 ./cloudformation/dependencies.sh',
+            'chmod 775 ./cloudformation/run-process.sh',
+            './cloudformation/dependencies.sh',
+            './cloudformation/run-process.sh']),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
