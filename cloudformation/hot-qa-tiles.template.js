@@ -67,12 +67,12 @@ const resources = {
             cf.sub('export OAUTH=${OAuthToken}'),
             'sudo yum install -y git',
             'git clone https://${OAUTH}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GITSHA}',
-            './mount-drive.sh',
+            './hot-qa-tiles/cloudformation/mount-drive.sh',
             'sudo chmod 777 hot-qa-tiles-generator/',
             'mv hot-qa-tiles hot-qa-tiles-generator/',
             'cd hot-qa-tiles-generator/',
-            './dependencies.sh',
-            './run-process.sh']),
+            './hot-qa-tiles/cloudformation/dependencies.sh',
+            './hot-qa-tiles/cloudformation/run-process.sh']),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
