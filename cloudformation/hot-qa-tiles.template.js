@@ -67,6 +67,7 @@ const resources = {
             cf.sub('export OAUTH=${OAuthToken}'),
             'sudo yum install -y git',
             'git clone https://${OAUTH}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GITSHA}',
+            'ls -l',
             './hot-qa-tiles/cloudformation/mount-drive.sh',
             'sudo chmod 777 hot-qa-tiles-generator/',
             'mv hot-qa-tiles hot-qa-tiles-generator/',
