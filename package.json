@@ -1,0 +1,27 @@
+{
+  "name": "hot-qa-tiles",
+  "version": "1.0.0",
+  "description": "OSM QA tiles for the full world",
+  "main": "worker.sh",
+  "scripts": {
+    "test": "sh test/worker.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hotosm/hot-qa-tiles.git"
+  },
+  "keywords": [
+    "qa-tiles",
+    "osm",
+    "tileset"
+  ],
+  "author": "hotosm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hotosm/hot-qa-tiles/issues"
+  },
+  "homepage": "https://github.com/hotosm/hot-qa-tiles#readme",
+  "dependencies": {
+    "@mapbox/cloudfriend": "^2.6.0"
+  }
+}

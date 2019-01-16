@@ -6,10 +6,8 @@ LATEST=planet-latest
 
 function setup() {
 
-    if $MULTI_POLYGON; then
+    if [ $MULTI_POLYGON ]; then
         EXT=".mp"
-    else
-        DESTINATION_PATH="s3://$DESTINATION_PATH"
     fi
 
     export INDEX_TYPE=dense
@@ -53,25 +51,25 @@ function run() {
     # get latest planet
     echo "Retrieve the latest planet PBF..."
     # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-
-echo $SOURCE_PATH/planet/$LATEST.osm.pbf     
-aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
     MBTILES_START_TIME="$(date +%s)"
 
-    cycleGeojson
-    if $MULTI_POLYGON; then
-       ./mason_packages/.link/bin/minjur-mp \
-            -n ${INDEX_TYPE} \
-            $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+    # cycleGeojson
+    if [ $MULTI_POLYGON ]; then
+      echo "building geojson with multipolygons"
+       minjur-mp \
+           -n ${INDEX_TYPE} \
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
     else
-        ./mason_packages/.link/bin/minjur \
-            -n ${INDEX_TYPE} \
-            -z 12 \
-            -p \
-            $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20" "pigz | aws s3 cp - $DESTINATION_PATH/latest$EXT.planet.geojson.gz"
+      echo "building geojson"
+        minjur \
+           -n ${INDEX_TYPE} \
+           -z 12 \
+           -p \
+           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
     fi
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
@@ -80,48 +78,38 @@ aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # create country extracts
     echo "Creating country extracts..."
-    aws s3 cp --quiet $SOURCE_PATH/countries.json $DATA_DIR/
-    node ./scripts/countries.js
-    rm $DATA_DIR/countries.json
-
-    for country in $(ls ${DATA_DIR}/*.geojson); do
-        mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$country" ADMIN
-    done
-
+    aws s3 cp $SOURCE_PATH/countries.json $DATA_DIR/
+    mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$DATA_DIR/countries.json"  NAME_EN
     # compress country extracts
     pigz $DATA_DIR/$LATEST$EXT.planet/*
 
-    #cycle old country tiles
-    cycleCountryTiles
+    # cycle old country tiles
+    # cycleCountryTiles
 
-    #upload latest country tiles
-    aws s3 cp --quiet --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
+    # upload latest country tiles
+    aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
 
-    rm -rf $DATA_DIR/$LATEST$EXT.planet
-
-    #compress planet tiles
+    # compress planet tiles
     COMPRESS_START="$(date +%s)"
     pigz $DATA_DIR/$LATEST$EXT.planet.mbtiles
     T="$(($(date +%s)-COMPRESS_START))"
     echo "compressed in $T seconds"
 
     # cycle old planet tiles
-    cycleTiles
+    # cycleTiles
 
     # upload new planet tiles to s3
-    aws s3 cp --quiet --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
-
-    rm $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz
+    aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
 
     # put the state to s3
-    aws s3 cp --quiet --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
+    # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
+    # T="$(($(date +%s)-$WORKER_START))"
+    # echo "worker finished in $T seconds"
 
-    T="$(($(date +%s)-$WORKER_START))"
-    echo "worker finished in $T seconds"
+    aws s3 cp *screenlog* $DESTINATION_PATH/
+    echo "Success. Updating ASG to terminate the machine"
+    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0 --region $Region
 
-    # shutdown machine after updating CloudWatch metrics
-    echo "Success. Update CloudWatch metric"
-    node ./scripts/updateCloudwatch.js
     echo "Success. Shutting down..."
 }
 
