@@ -12,7 +12,23 @@ function setup() {
 
     export INDEX_TYPE=dense
 
-    mkdir -p $DATA_DIR
+    mkdir -p $DATA_DIR && cd $DATA_DIR
+
+    echo "setup osmupdate and osmconvert"
+    wget -O - http://m.m.i24.cc/osmupdate.c | cc -x c - -o osmupdate
+    wget -O - http://m.m.i24.cc/osmconvert.c | cc -x c - -lz -O3 -o osmconvert
+    mv osmupdate osmconvert /usr/bin/
+
+    wget https://ftpmirror.your.org/pub/openstreetmap/pbf/$LATEST.osm.pbf
+
+    echo "Retrieve the latest planet PBF..."
+    parallel -- "osmupdate --verbose --day $LATEST.osm.pbf $LATEST-new.osm.pbf"
+
+    mv $LATEST-new.osm.pbf $LATEST.osm.pbf
+
+    aws s3 cp $LATEST.osm.pbf $SOURCE_PATH/planet/latest/$LATEST.osm.pbf
+
+    cd ../
 
 }
 
@@ -47,11 +63,6 @@ function run() {
     echo "Worker started."
 
     setup
-
-    # get latest planet
-    echo "Retrieve the latest planet PBF..."
-    # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
