@@ -12,7 +12,23 @@ function setup() {
 
     export INDEX_TYPE=dense
 
-    mkdir -p $DATA_DIR
+    mkdir -p $DATA_DIR && cd $DATA_DIR
+
+    echo "setup osmupdate and osmconvert"
+    wget -O - http://m.m.i24.cc/osmupdate.c | cc -x c - -o osmupdate
+    wget -O - http://m.m.i24.cc/osmconvert.c | cc -x c - -lz -O3 -o osmconvert
+    mv osmupdate osmconvert /usr/bin/
+
+    wget https://ftpmirror.your.org/pub/openstreetmap/pbf/$LATEST.osm.pbf
+
+    echo "Retrieve the latest planet PBF..."
+    parallel -- "osmupdate --verbose --day $LATEST.osm.pbf $LATEST-new.osm.pbf"
+
+    mv $LATEST-new.osm.pbf $LATEST.osm.pbf
+
+    aws s3 cp $LATEST.osm.pbf $SOURCE_PATH/planet/latest/$LATEST.osm.pbf
+
+    cd ../
 
 }
 
@@ -48,11 +64,6 @@ function run() {
 
     setup
 
-    # get latest planet
-    echo "Retrieve the latest planet PBF..."
-    # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
-
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
     MBTILES_START_TIME="$(date +%s)"
@@ -84,7 +95,7 @@ function run() {
     pigz $DATA_DIR/$LATEST$EXT.planet/*
 
     # cycle old country tiles
-    # cycleCountryTiles
+    cycleCountryTiles
 
     # upload latest country tiles
     aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
@@ -96,15 +107,10 @@ function run() {
     echo "compressed in $T seconds"
 
     # cycle old planet tiles
-    # cycleTiles
+    cycleTiles
 
     # upload new planet tiles to s3
     aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
-
-    # put the state to s3
-    # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
-    # T="$(($(date +%s)-$WORKER_START))"
-    # echo "worker finished in $T seconds"
 
     aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
