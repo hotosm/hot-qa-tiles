@@ -95,7 +95,7 @@ function run() {
     pigz $DATA_DIR/$LATEST$EXT.planet/*
 
     # cycle old country tiles
-    # cycleCountryTiles
+    cycleCountryTiles
 
     # upload latest country tiles
     aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
@@ -107,15 +107,10 @@ function run() {
     echo "compressed in $T seconds"
 
     # cycle old planet tiles
-    # cycleTiles
+    cycleTiles
 
     # upload new planet tiles to s3
     aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
-
-    # put the state to s3
-    # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
-    # T="$(($(date +%s)-$WORKER_START))"
-    # echo "worker finished in $T seconds"
 
     aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
