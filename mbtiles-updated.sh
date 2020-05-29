@@ -108,7 +108,7 @@ function run() {
 
     aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
-    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0 --region $Region
+    aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0 --region ${region}
 
     echo "Success. Shutting down..."
 }

@@ -31,7 +31,7 @@ const resources = {
           },
           Overrides: [{
             InstanceType: 'r3.8xlarge'
-          }, {
+          },{
             InstanceType: 'r5d.4xlarge'
           }]
         },
@@ -42,7 +42,18 @@ const resources = {
           SpotAllocationStrategy: 'lowest-price',
           SpotInstancePools: 2
         }
-      }
+      },
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'HOT-QA-Tiles',
+          PropagateAtLaunch: true
+        }, {
+          Key: 'Environment',
+          Value: cf.stackName,
+          PropagateAtLaunch: true
+        }
+      ]
     }
   },
   HOTQATilesASGScheduledAction: {
@@ -52,7 +63,7 @@ const resources = {
       DesiredCapacity: 1,
       MaxSize: 1,
       MinSize: 0,
-      Recurrence: '15 7 * * *'
+      Recurrence: '15 7 1 * *'
     }
   },
   HOTQATilesEC2LaunchTemplate: {
@@ -97,7 +108,7 @@ const resources = {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
         },
         KeyName: 'mbtiles',
-        ImageId: 'ami-f6ed648c'
+        ImageId: 'ami-0aff68d244cd33eb4'
       }
     }
   },
