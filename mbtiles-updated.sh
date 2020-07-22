@@ -1,7 +1,12 @@
 #!/bin/bash
 DATA_DIR=data
-DESTINATION_PATH=s3://hot-qa-tiles
+if [ "$1" != "" ]; then
+    DESTINATION_PATH=$1
+else
+    DESTINATION_PATH=s3://hot-qa-tiles
+fi
 SOURCE_PATH=s3://hot-qa-tiles
+LATEST_PLANET_SRC=https://ftp.osuosl.org/pub/openstreetmap/pbf/planet-latest.osm.pbf
 LATEST=planet-latest
 
 function setup() {
@@ -20,7 +25,7 @@ function cycleGeojson() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.planet$EXT.geojson.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo $DESTINATION_PATH
-        aws s3 cp  $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
+        aws s3 cp $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
     fi
 
 }
@@ -51,7 +56,8 @@ function run() {
     # get latest planet
     echo "Retrieve the latest planet PBF..."
     # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+    # aws s3 cp $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+    curl -o $DATA_DIR/$LATEST $LATEST_PLANET_SRC
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
@@ -60,7 +66,7 @@ function run() {
     # cycleGeojson
     if [ $MULTI_POLYGON ]; then
       echo "building geojson with multipolygons"
-       minjur-mp \
+        minjur-mp \
            -n ${INDEX_TYPE} \
            $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
     else

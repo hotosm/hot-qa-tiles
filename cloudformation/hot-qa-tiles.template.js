@@ -8,6 +8,10 @@ const parameters = {
   OAuthToken: {
     Type: 'String',
     Description: 'OAuthToken with permissions to clone hot-qa-tiles'
+  },
+  s3DestinationPath: {
+    Type: 'String',
+    Description: 's3 path for where files will be uploaded'
   }
 };
 
@@ -88,20 +92,18 @@ const resources = {
           '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"',
           'nvm install v9',
           'npm install mbtiles-extracts -g --unsafe',
-          'git clone https://github.com/mapbox/mason.git ~/.mason',
+          'git clone --depth=1 https://github.com/mapbox/mason.git ~/.mason',
           'sudo ln -s ~/.mason/mason /usr/local/bin/mason',
-          '~/.mason/mason install libosmium 2.13.1',
-          '~/.mason/mason link libosmium 2.13.1',
-          '~/.mason/mason install minjur a2c9dc871369432c7978718834dac487c0591bd6',
-          '~/.mason/mason link minjur a2c9dc871369432c7978718834dac487c0591bd6',
-          '~/.mason/mason install tippecanoe 1.31.0',
-          '~/.mason/mason link tippecanoe 1.31.0',
+          '~/.mason/mason install osmium-tool 1.11.0',
+          '~/.mason/mason link  osmium-tool 1.11.0',
+          '~/.mason/mason install tippecanoe 1.32.0',
+          '~/.mason/mason link tippecanoe 1.32.0',
           'echo $PATH',
           'export PATH=$PATH:/mason_packages/.link/bin/',
           'sudo chmod 777 hot-qa-tiles-generator/',
           'cd hot-qa-tiles-generator/',
           cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
-          cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh"')
+          cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh ${s3DestinationPath}"')
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
