@@ -100,7 +100,7 @@ const resources = {
           'export PATH=$PATH:/mason_packages/.link/bin/',
           'sudo chmod 777 hot-qa-tiles-generator/',
           'cd hot-qa-tiles-generator/',
-          cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
+          cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git reset --hard ${GitSha}'),
           cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh"')
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
