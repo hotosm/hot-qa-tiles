@@ -85,7 +85,7 @@ function run() {
 
     # compress planet tiles
     COMPRESS_START="$(date +%s)"
-    pigz $DATA_DIR/$LATEST$EXT.planet.mbtiles
+    pigz $DATA_DIR/$LATEST$EXT.planet.mbtiles 
     T="$(($(date +%s)-COMPRESS_START))"
     echo "compressed in $T seconds"
 
