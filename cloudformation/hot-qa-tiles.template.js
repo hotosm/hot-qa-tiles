@@ -34,9 +34,9 @@ const resources = {
             Version: 1
           },
           Overrides: [{
-            InstanceType: 'r3.8xlarge'
+            InstanceType: 'r5d.8xlarge'
           },{
-            InstanceType: 'r5d.4xlarge'
+            InstanceType: 'r5dn.8xlarge'
           }]
         },
         InstancesDistribution: {
@@ -77,8 +77,13 @@ const resources = {
       LaunchTemplateData: {
         UserData: cf.userData([
           '#!/bin/bash',
-          'while [ ! -e /dev/xvda ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
-          'sudo mkdir -p /hot-qa-tiles-generator',
+          'while [ ! -e /dev/xvdc ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
+          'while [ ! -e /dev/xvdb ]; do echo waiting for /dev/xvdb to attach; sleep 10; done',
+          'sudo mkdir -p hot-qa-tiles-generator',
+          'sudo mkfs -t ext3 /dev/xvdc',
+          'sudo mount /dev/xvdc hot-qa-tiles-generator/',
+          'sudo mkfs -t ext3 /dev/xvdb',
+          'sudo mount /dev/xvdb /tmp',
           'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
           'sudo yum --enablerepo epel install -y moreutils',
           'curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash',
@@ -107,14 +112,7 @@ const resources = {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
         },
         KeyName: 'mbtiles',
-        ImageId: 'ami-0915e09cc7ceee3ab',
-        BlockDeviceMappings: [{
-            DeviceName: '/dev/xvda',
-            Ebs: {
-              VolumeSize: 1024,
-              DeleteOnTermination: true
-            }
-        }]
+        ImageId: 'ami-0aff68d244cd33eb4',
       }
     }
   },
