@@ -64,8 +64,8 @@ function run() {
     echo "building geojson with multipolygons"
     osmium export \
         -c osm-qa-tile.osmiumconfig --overwrite \
-        -f geojsonseq -o features.geojsonseq \
-        --verbose --progress $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -Pf -z12 -Z12 -ps -pf -pk -b0 -d20 --no-tile-stats"
+        -f geojsonseq --verbose --progress \
+        $DATA_DIR/$LATEST.osm.pbf | pee "node filter-serial.js" | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -Pf -Z12 -z12 -d20 -b0 -pf -pk -ps --no-tile-stats"
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
     echo "converted to mbtiles-extracts in $T seconds"
