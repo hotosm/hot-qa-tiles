@@ -77,15 +77,17 @@ const resources = {
       LaunchTemplateData: {
         UserData: cf.userData([
           '#!/bin/bash',
-          'while [ ! -e /dev/xvdc ]; do echo waiting for /dev/xvdc to attach; sleep 10; done',
-          'while [ ! -e /dev/xvdb ]; do echo waiting for /dev/xvdb to attach; sleep 10; done',
+          'while [ ! -e /dev/nvme1n1 ]; do echo waiting for /dev/nvme1n1 to attach; sleep 10; done',
+          'while [ ! -e /dev/nvme2n1 ]; do echo waiting for /dev/nvme2n1 to attach; sleep 10; done',
           'sudo mkdir -p hot-qa-tiles-generator',
-          'sudo mkfs -t ext3 /dev/xvdc',
-          'sudo mount /dev/xvdc hot-qa-tiles-generator/',
-          'sudo mkfs -t ext3 /dev/xvdb',
-          'sudo mount /dev/xvdb /tmp',
+          'sudo mkfs -t ext3 /dev/nvme1n1',
+          'sudo mount /dev/nvme1n1 hot-qa-tiles-generator/',
+          'sudo mkfs -t ext3 /dev/nvme2n1',
+          'sudo mount /dev/nvme2n1 /tmp',
           'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
-          'sudo yum --enablerepo epel install -y moreutils',
+          'sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm',
+          'sudo yum-config-manager --enable epel',
+          'sudo yum install -y moreutils',
           'curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash',
           'export NVM_DIR="$HOME/.nvm"',
           '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
@@ -102,6 +104,7 @@ const resources = {
           '~/.mason/mason link tippecanoe 1.32.10',
           'echo $PATH',
           'export PATH=$PATH:/mason_packages/.link/bin/',
+          'export LC_ALL=en_US.UTF-8',
           'sudo chmod 777 /hot-qa-tiles-generator/',
           'cd /hot-qa-tiles-generator/',
           cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
@@ -112,7 +115,8 @@ const resources = {
           Name: cf.ref('HOTQATilesEC2InstanceProfile')
         },
         KeyName: 'mbtiles',
-        ImageId: 'ami-0aff68d244cd33eb4',
+        ImageId: 'ami-08f3d892de259504d',
+
       }
     }
   },

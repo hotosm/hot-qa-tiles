@@ -32,14 +32,16 @@ function cycleGeojson() {
 function cycleCountryTiles() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.country/ | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
+        echo "Cycling previous latest.country/ country tiles"
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest.country $DESTINATION_PATH/previous.country --recursive
     fi
 }
 
 function cycleTiles() {
-    LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.planet$EXT.mbtiles.gz | wc -l | xargs)
+    LATEST_EXISTS=$(aws s3 ls DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest.planet$EXT.mbtiles.gz $DESTINATION_PATH/previous.planet$EXT.mbtiles.gz
+        echo "Cycling previous latest$EXT.planet.mbtiles.gz"
+        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
     fi
 }
@@ -65,7 +67,7 @@ function run() {
     osmium export \
         -c osm-qa-tile.osmiumconfig --overwrite \
         -f geojsonseq --verbose --progress \
-        $DATA_DIR/$LATEST.osm.pbf | pee "node filter-serial.js" | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -Pf -Z12 -z12 -d20 -b0 -pf -pk -ps --no-tile-stats"
+        $DATA_DIR/$LATEST.osm.pbf | pee "node --max-old-space-size=32000 filter-serial.js" | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -Pf -Z12 -z12 -d20 -b0 -pf -pk -ps --no-tile-stats"
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
     echo "converted to mbtiles-extracts in $T seconds"
@@ -93,12 +95,12 @@ function run() {
     cycleTiles
 
     # upload new planet tiles to s3
-    aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+    aws s3 cp --acl --no-progress public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
 
     # put the state to s3
     # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
-    # T="$(($(date +%s)-$WORKER_START))"
-    # echo "worker finished in $T seconds"
+    T="$(($(date +%s)-$WORKER_START))"
+    echo "worker finished in $T seconds"
 
     aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
