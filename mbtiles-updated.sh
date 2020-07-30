@@ -95,7 +95,7 @@ function run() {
     cycleTiles
 
     # upload new planet tiles to s3
-    aws s3 cp --acl --no-progress public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+    aws s3 cp --aclpublic-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
 
     # put the state to s3
     # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
