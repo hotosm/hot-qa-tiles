@@ -38,10 +38,11 @@ function cycleCountryTiles() {
 }
 
 function cycleTiles() {
-    LATEST_EXISTS=$(aws s3 ls DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
+    LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo "Cycling previous latest$EXT.planet.mbtiles.gz"
         aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
+        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
     fi
 }
@@ -77,7 +78,7 @@ function run() {
     aws s3 cp $SOURCE_PATH/countries.json $DATA_DIR/
     mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$DATA_DIR/countries.json"  NAME_EN
     # compress country extracts
-    pigz $DATA_DIR/$LATEST$EXT.planet/*
+    pigz -k $DATA_DIR/$LATEST$EXT.planet/*
 
     # cycle old country tiles
     cycleCountryTiles
@@ -87,7 +88,7 @@ function run() {
 
     # compress planet tiles
     COMPRESS_START="$(date +%s)"
-    pigz $DATA_DIR/$LATEST$EXT.planet.mbtiles 
+    pigz -k $DATA_DIR/$LATEST$EXT.planet.mbtiles 
     T="$(($(date +%s)-COMPRESS_START))"
     echo "compressed in $T seconds"
 
@@ -95,7 +96,10 @@ function run() {
     cycleTiles
 
     # upload new planet tiles to s3
+    # TODO: Adjust our services to use uncompressed tiles only, since compression doesn't save much
     aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+
+    aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles $DESTINATION_PATH/latest$EXT.planet.mbtiles
 
     # put the state to s3
     # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
