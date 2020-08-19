@@ -1,18 +1,22 @@
 #!/bin/bash
 DATA_DIR=data
-DESTINATION_PATH=s3://hot-qa-tiles
+if [ "$1" != "" ]; then
+    DESTINATION_PATH=$1
+else
+    DESTINATION_PATH=s3://hot-qa-tiles
+fi
 SOURCE_PATH=s3://hot-qa-tiles
+LATEST_PLANET_SRC=https://ftp.osuosl.org/pub/openstreetmap/pbf/planet-latest.osm.pbf
 LATEST=planet-latest
 
 function setup() {
 
-    if [ $MULTI_POLYGON ]; then
-        EXT=".mp"
-    fi
-
     export INDEX_TYPE=dense
 
-    mkdir -p $DATA_DIR
+    echo "Retrieve the latest planet PBF..."
+    mkdir -p $DATA_DIR && cd $DATA_DIR
+    wget $LATEST_PLANET_SRC
+    cd ..
 
 }
 
@@ -20,7 +24,7 @@ function cycleGeojson() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.planet$EXT.geojson.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo $DESTINATION_PATH
-        aws s3 cp  $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
+        aws s3 cp $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
     fi
 
 }
@@ -28,14 +32,17 @@ function cycleGeojson() {
 function cycleCountryTiles() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.country/ | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
+        echo "Cycling previous latest.country/ country tiles"
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest.country $DESTINATION_PATH/previous.country --recursive
     fi
 }
 
 function cycleTiles() {
-    LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.planet$EXT.mbtiles.gz | wc -l | xargs)
+    LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest.planet$EXT.mbtiles.gz $DESTINATION_PATH/previous.planet$EXT.mbtiles.gz
+        echo "Cycling previous latest$EXT.planet.mbtiles.gz"
+        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
+        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
     fi
 }
@@ -49,62 +56,55 @@ function run() {
     setup
 
     # get latest planet
-    echo "Retrieve the latest planet PBF..."
     # LATEST=$(aws s3 cp --quiet $SOURCE_PATH/planet/latest $DATA_DIR/; cat $DATA_DIR/latest)
-    aws s3 cp  $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
+    # aws s3 cp $SOURCE_PATH/planet/latest/$LATEST.osm.pbf $DATA_DIR/
 
     # PBF -> mbtiles
     echo "Generating the latest mbtiles. PBF -> GeoJSON -> mbtiles"
     MBTILES_START_TIME="$(date +%s)"
 
     # cycleGeojson
-    if [ $MULTI_POLYGON ]; then
-      echo "building geojson with multipolygons"
-       minjur-mp \
-           -n ${INDEX_TYPE} \
-           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
-    else
-      echo "building geojson"
-        minjur \
-           -n ${INDEX_TYPE} \
-           -z 12 \
-           -p \
-           $DATA_DIR/$LATEST.osm.pbf | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -f -z12 -Z12 -ps -pf -pk -P -b0 -d20"
-    fi
+    echo "building geojson with multipolygons"
+    osmium export \
+        -c osm-qa-tile.osmiumconfig --overwrite \
+        -f geojsonseq --verbose --progress \
+        $DATA_DIR/$LATEST.osm.pbf | pee "node --max-old-space-size=32000 filter-serial.js" | pee "tippecanoe -q -l osm -n osm-latest -o $DATA_DIR/$LATEST$EXT.planet.mbtiles -Pf -Z12 -z12 -d20 -b0 -pf -pk -ps --no-tile-stats"
 
     T="$(($(date +%s)-$MBTILES_START_TIME))"
     echo "converted to mbtiles-extracts in $T seconds"
-
 
     # create country extracts
     echo "Creating country extracts..."
     aws s3 cp $SOURCE_PATH/countries.json $DATA_DIR/
     mbtiles-extracts "$DATA_DIR/$LATEST$EXT.planet.mbtiles" "$DATA_DIR/countries.json"  NAME_EN
     # compress country extracts
-    pigz $DATA_DIR/$LATEST$EXT.planet/*
+    pigz -k $DATA_DIR/$LATEST$EXT.planet/*
 
     # cycle old country tiles
-    # cycleCountryTiles
+    cycleCountryTiles
 
     # upload latest country tiles
     aws s3 cp --acl public-read $DATA_DIR/$LATEST$EXT.planet $DESTINATION_PATH/latest.country --recursive
 
     # compress planet tiles
     COMPRESS_START="$(date +%s)"
-    pigz $DATA_DIR/$LATEST$EXT.planet.mbtiles
+    pigz -k $DATA_DIR/$LATEST$EXT.planet.mbtiles 
     T="$(($(date +%s)-COMPRESS_START))"
     echo "compressed in $T seconds"
 
     # cycle old planet tiles
-    # cycleTiles
+    cycleTiles
 
     # upload new planet tiles to s3
-    aws s3 cp  --acl public-read $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+    # TODO: Adjust our services to use uncompressed tiles only, since compression doesn't save much
+    aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
+
+    aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles $DESTINATION_PATH/latest$EXT.planet.mbtiles
 
     # put the state to s3
     # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
-    # T="$(($(date +%s)-$WORKER_START))"
-    # echo "worker finished in $T seconds"
+    T="$(($(date +%s)-$WORKER_START))"
+    echo "worker finished in $T seconds"
 
     aws s3 cp *screenlog* $DESTINATION_PATH/
     echo "Success. Updating ASG to terminate the machine"
