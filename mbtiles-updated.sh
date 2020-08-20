@@ -41,8 +41,8 @@ function cycleTiles() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo "Cycling previous latest$EXT.planet.mbtiles.gz"
-        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
-        aws s3 cp --quiet --acl public-read DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
+        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
+        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
         aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
     fi
 }
