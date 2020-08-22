@@ -24,7 +24,7 @@ function cycleGeojson() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.planet$EXT.geojson.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo $DESTINATION_PATH
-        aws s3 cp $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
+        aws s3 cp --no-progress $DESTINATION_PATH/latest.planet$EXT.geojson.gz $DESTINATION_PATH/previous.planet$EXT.geojson.gz
     fi
 
 }
@@ -33,7 +33,7 @@ function cycleCountryTiles() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest.country/ | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo "Cycling previous latest.country/ country tiles"
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest.country $DESTINATION_PATH/previous.country --recursive
+        aws s3 cp --no-progress --acl public-read $DESTINATION_PATH/latest.country $DESTINATION_PATH/previous.country --recursive
     fi
 }
 
@@ -41,9 +41,10 @@ function cycleTiles() {
     LATEST_EXISTS=$(aws s3 ls $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz | wc -l | xargs)
     if [ $LATEST_EXISTS != 0 ]; then
         echo "Cycling previous latest$EXT.planet.mbtiles.gz"
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
-        aws s3 cp --quiet --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
+        aws s3 cp --no-progress --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz $DESTINATION_PATH/previous$EXT.planet.mbtiles.gz
+        aws s3 cp --no-progress --acl public-read $DESTINATION_PATH/latest$EXT.planet.mbtiles $DESTINATION_PATH/previous$EXT.planet.mbtiles
+        # aws s3 cp --no-progress --acl public-read $DESTINATION_PATH/latest $DESTINATION_PATH/previous
+        echo "Done cycling"
     fi
 }
 
@@ -97,9 +98,13 @@ function run() {
 
     # upload new planet tiles to s3
     # TODO: Adjust our services to use uncompressed tiles only, since compression doesn't save much
+    
+    echo "Uploading latest planet file..."
     aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles.gz $DESTINATION_PATH/latest$EXT.planet.mbtiles.gz
 
     aws s3 cp --acl public-read --no-progress $DATA_DIR/$LATEST$EXT.planet.mbtiles $DESTINATION_PATH/latest$EXT.planet.mbtiles
+
+    echo "done"
 
     # put the state to s3
     # aws s3 cp --acl public-read $DATA_DIR/latest $DESTINATION_PATH/
