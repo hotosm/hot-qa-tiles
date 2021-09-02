@@ -53,9 +53,11 @@ const resources = {
             Version: 1
           },
           Overrides: [{
-            InstanceType: 'r5d.8xlarge'
+            // InstanceType: 'r5d.8xlarge'
+            InstanceType: 't3.small'
           },{
-            InstanceType: 'r5dn.8xlarge'
+            // InstanceType: 'r5dn.8xlarge'
+            InstanceType: 't3.medium'
           }]
         },
         InstancesDistribution: {
@@ -96,13 +98,13 @@ const resources = {
       LaunchTemplateData: {
         UserData: cf.userData([
           '#!/bin/bash',
-          'while [ ! -e /dev/nvme1n1 ]; do echo waiting for /dev/nvme1n1 to attach; sleep 10; done',
-          'while [ ! -e /dev/nvme2n1 ]; do echo waiting for /dev/nvme2n1 to attach; sleep 10; done',
-          'sudo mkdir -p hot-qa-tiles-generator',
-          'sudo mkfs -t ext3 /dev/nvme1n1',
-          'sudo mount /dev/nvme1n1 hot-qa-tiles-generator/',
-          'sudo mkfs -t ext3 /dev/nvme2n1',
-          'sudo mount /dev/nvme2n1 /tmp',
+          // 'while [ ! -e /dev/nvme1n1 ]; do echo waiting for /dev/nvme1n1 to attach; sleep 10; done',
+          // 'while [ ! -e /dev/nvme2n1 ]; do echo waiting for /dev/nvme2n1 to attach; sleep 10; done',
+          'sudo mkdir -p /hot-qa-tiles-generator',
+          //'sudo mkfs -t ext3 /dev/nvme1n1',
+          //'sudo mount /dev/nvme1n1 hot-qa-tiles-generator/',
+          //'sudo mkfs -t ext3 /dev/nvme2n1',
+          //'sudo mount /dev/nvme2n1 /tmp',
           'sudo yum install -y lvm2 wget vim tmux htop traceroute git gcc gcc-c++ make openssl-devel kernel-devel, mesa-libGL mesa-libGL-devel xorg-x11-server-Xorg.x86_64 libpcap pigz',
           'sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm',
           'sudo yum-config-manager --enable epel',
@@ -127,7 +129,8 @@ const resources = {
           'sudo chmod 777 /hot-qa-tiles-generator/',
           'cd /hot-qa-tiles-generator/',
           cf.sub('git clone https://${OAuthToken}@github.com/hotosm/hot-qa-tiles.git && cd hot-qa-tiles && git checkout ${GitSha}'),
-          cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh ${s3DestinationPath}"')
+          // cf.sub('screen -dLmS "tippecanoe" bash -c "sudo chmod 777 mbtiles-updated.sh;HotQATilesASG=${AWS::StackName} region=${AWS::Region} ./mbtiles-updated.sh ${s3DestinationPath}"'),
+          // 'aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${HotQATilesASG} --min-size 0 --max-size 0 --desired-capacity 0 --region ${region}'
         ]),
         InstanceInitiatedShutdownBehavior: 'terminate',
         IamInstanceProfile: {
