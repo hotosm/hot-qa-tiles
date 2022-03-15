@@ -12,7 +12,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project       = "qa-tiles"
-      Maintainer    = "Dakota_Benjamin and Yogesh_Girikumar"
+      Maintainer    = "DK_Benjamin and Yogesh_Girikumar"
       Documentation = "https://docs.hotosm.org/qa-tiles"
     }
   }

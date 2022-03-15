@@ -17,6 +17,11 @@
 // 1100 13th Street NW Suite 800 Washington, D.C. 20005
 // <info@hotosm.org>
 
+variable "aws_region" {
+  type    = string
+  default = "us-west-1"
+}
+
 variable "git_commit_sha" {
   type    = string
   default = "3fdb96cfa274ed591bea36fcb031e4d872d175ff"
@@ -36,11 +41,6 @@ variable "s3_destination_path" {
 variable "project_name" {
   type    = string
   default = "qa-tiles"
-}
-
-variable "aws_region" {
-  type    = string
-  default = "us-west-1"
 }
 
 variable "ssh_key_name" {
